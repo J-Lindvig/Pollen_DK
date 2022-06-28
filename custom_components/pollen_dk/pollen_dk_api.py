@@ -80,6 +80,10 @@ class PollenType:
             level = dateKey["prediction"]
             if level:
                 self._predictions.append(PollenPrediction(date, int(level)))
+        if self._predictions:
+            self._predictions.sort(
+                key=lambda date: datetime.strptime(date._date, "%d-%m-%Y")
+            )
 
     def getID(self):
         return self._ID
