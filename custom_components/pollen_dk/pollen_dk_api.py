@@ -28,7 +28,6 @@ class Pollen_DK:
         r = self._session.get(POLLEN_URL)
         if r.status_code == 200:
             r_json = json.loads(r.json())
-            #            for regionID in r_json.keys():
             for regionID in r_json["fields"].keys():
                 if int(regionID) in self._regionIDs:
                     self._regions[regionID] = PollenRegion(
@@ -46,7 +45,7 @@ class PollenRegion:
         self._ID = regionID
         self._pollenIDs = pollenIDs
         self._name = list(REGION_IDS.keys())[list(REGION_IDS.values()).index(regionID)]
-        self._date = rawData["date"]
+        self._date = rawData["date"]["stringValue"]
         self._pollenTypes = {}
 
         for pollenID, pollenData in rawData["data"]["mapValue"]["fields"].items():
