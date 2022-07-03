@@ -28,10 +28,13 @@ class Pollen_DK:
         r = self._session.get(POLLEN_URL)
         if r.status_code == 200:
             r_json = json.loads(r.json())
-            for regionID in r_json.keys():
+            #            for regionID in r_json.keys():
+            for regionID in r_json["fields"].keys():
                 if int(regionID) in self._regionIDs:
                     self._regions[regionID] = PollenRegion(
-                        int(regionID), self._pollenIDs, r_json[regionID]
+                        int(regionID),
+                        self._pollenIDs,
+                        r_json["fields"][regionID]["mapValue"]["fields"],
                     )
 
     def getRegions(self):
@@ -46,10 +49,10 @@ class PollenRegion:
         self._date = rawData["date"]
         self._pollenTypes = {}
 
-        for pollenID, pollenData in rawData["data"].items():
+        for pollenID, pollenData in rawData["data"]["mapValue"]["fields"].items():
             if int(pollenID) in self._pollenIDs:
                 self._pollenTypes[pollenID] = PollenType(
-                    int(pollenID), pollenData, self._date
+                    int(pollenID), pollenData["mapValue"]["fields"], self._date
                 )
 
     def getID(self):
@@ -72,12 +75,12 @@ class PollenType:
             list(POLLEN_IDS.values()).index(pollenID)
         ].title()
         self._date = date
-        self._inSeason = rawData["inSeason"]
-        self._level = rawData["level"]
+        self._inSeason = rawData["inSeason"]["booleanValue"]
+        self._level = rawData["level"]["integerValue"]
         self._predictions = []
 
-        for date, dateKey in rawData["predictions"].items():
-            level = dateKey["prediction"]
+        for date, dateKey in rawData["predictions"]["mapValue"]["fields"].items():
+            level = dateKey["mapValue"]["fields"]["prediction"]["stringValue"]
             if level:
                 self._predictions.append(PollenPrediction(date, int(level)))
         if self._predictions:
