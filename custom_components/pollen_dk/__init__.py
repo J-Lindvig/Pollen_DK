@@ -2,6 +2,11 @@ from __future__ import annotations
 
 import logging
 
+#Import dependencies to support new way of adding sensors - line 57
+from homeassistant.core import HomeAssistant
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.helpers import discovery
+
 from .pollen_dk_api import Pollen_DK
 
 from .const import (
@@ -49,9 +54,13 @@ async def async_setup(hass, config):
 
     hass.data[DOMAIN] = {CONF_CLIENT: Pollen_DK(regionIDs, pollenIDs)}
 
-    # Add sensors
-    hass.async_create_task(
-        hass.helpers.discovery.async_load_platform(CONF_PLATFORM, DOMAIN, conf, config)
+    # Add sensors using the new method
+    await discovery.async_load_platform(
+        hass,
+        CONF_PLATFORM,
+        DOMAIN,
+        conf,
+        config
     )
 
     # Initialization was successful.
