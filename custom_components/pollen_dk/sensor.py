@@ -50,26 +50,34 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     for region in regions:
         for pollen in region.getPollenTypes():
             entities.append(
-                PollenSensor(hass, coordinator, region, pollen, len(regions))
+                PollenSensor(hass, coordinator, region.getID(), pollen.getID(), len(regions))
             )
     async_add_entities(entities)
 
 
 class PollenSensor(SensorEntity):
-    def __init__(self, hass, coordinator, region, pollen, regionsLen) -> None:
+    def __init__(self, hass, coordinator, regionID, pollenID, regionsLen) -> None:
         self._hass = hass
         self._coordinator = coordinator
-        self._region = region
-        self._pollen = pollen
+        self._regionID = regionID
+        self._pollenID = pollenID
         self._regionsLen = regionsLen
         self._attr_state_class = SensorStateClass.MEASUREMENT
+
+    def region(self):
+        pollen_DK = self._hass.data[DOMAIN][CONF_CLIENT]
+        return pollen_DK.getRegionByID(self._regionID)
+
+    def pollen(self):
+        return self.region().getPollenTypeByID(self._pollenID)
+
 
     @property
     def name(self):
         if self._regionsLen > 1:
-            return f"{ NAME_PREFIX } {self._pollen.getName()} {self._region.getName().split()[0]}"
+            return f"{ NAME_PREFIX } {self.pollen().getName()} {self.region().getName().split()[0]}"
         else:
-            return f"{ NAME_PREFIX } {self._pollen.getName()}"
+            return f"{ NAME_PREFIX } {self.pollen().getName()}"
 
     @property
     def icon(self):
@@ -77,11 +85,11 @@ class PollenSensor(SensorEntity):
 
     @property
     def state(self):
-        return self._pollen.getLevel()
+        return self.pollen().getLevel()
 
     @property
     def unique_id(self):
-        return f"33fecfc9590b4c098ab27d0f188b6d4e_{self._region.getID()}_{self._pollen.getID()}"
+        return f"33fecfc9590b4c098ab27d0f188b6d4e_{self.region().getID()}_{self.pollen().getID()}"
 
     @property
     def state_class(self) -> str:
@@ -92,10 +100,10 @@ class PollenSensor(SensorEntity):
     def extra_state_attributes(self):
         attr = {}
 
-        attr["last_update"] = self._pollen.getDate()
-        attr["in_season"] = self._pollen.getInSeason()
+        attr["last_update"] = self.pollen().getDate()
+        attr["in_season"] = self.pollen().getInSeason()
         attr["predictions"] = []
-        for prediction in self._pollen.getPredictions():
+        for prediction in self.pollen().getPredictions():
             attr["predictions"].append(
                 {"date": prediction.getDate(), "level": prediction.getLevel()}
             )

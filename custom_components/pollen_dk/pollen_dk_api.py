@@ -36,6 +36,11 @@ class Pollen_DK:
                         r_json["fields"][regionID]["mapValue"]["fields"],
                     )
 
+    def getRegionByID(self,regionID):
+        for region in self.getRegions():
+            if (region.getID() == regionID):
+                return region
+
     def getRegions(self):
         return self._regions.values()
 
@@ -62,6 +67,11 @@ class PollenRegion:
 
     def getDate(self):
         return self._date
+
+    def getPollenTypeByID(self,pollenID):
+        for pollen in self.getPollenTypes():
+            if (pollen.getID() == pollenID):
+                return pollen
 
     def getPollenTypes(self):
         return self._pollenTypes.values()
